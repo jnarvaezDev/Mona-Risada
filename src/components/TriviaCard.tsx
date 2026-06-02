@@ -119,7 +119,7 @@ export const TriviaCard = () => {
     return null;
   };
 
-  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const validationError = validateRegistration();
     if (validationError) {
@@ -127,8 +127,45 @@ export const TriviaCard = () => {
       return;
     }
 
+    setIsSubmitting(true);
+
+    const documentValue = participant.document.trim();
+    const phoneValue = normalizePhone(participant.phone);
+    const instagramValue = `@${normalizeInstagram(participant.instagramUrl)}`;
+
+    const [documentCheck, phoneCheck, instagramCheck] = await Promise.all([
+      supabase.from("trivia_entries").select("id").eq("document", documentValue).limit(1),
+      supabase.from("trivia_entries").select("id").eq("phone", phoneValue).limit(1),
+      supabase.from("trivia_entries").select("id").eq("instagram_url", instagramValue).limit(1),
+    ]);
+
+    if (documentCheck.error || phoneCheck.error || instagramCheck.error) {
+      setFormError("No pudimos validar tu participación en este momento. Intentá de nuevo.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (documentCheck.data.length > 0) {
+      setFormError("Ya participaste con esa cédula.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (phoneCheck.data.length > 0) {
+      setFormError("Ya participaste con ese celular.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (instagramCheck.data.length > 0) {
+      setFormError("Ya participaste con ese usuario de Instagram.");
+      setIsSubmitting(false);
+      return;
+    }
+
     setFormError(null);
     setStep("trivia");
+    setIsSubmitting(false);
   };
 
   const handleSelect = async (idx: number) => {
@@ -290,8 +327,8 @@ export const TriviaCard = () => {
                 <p className="text-sm text-destructive font-medium">{formError}</p>
               )}
 
-              <Button type="submit" size="lg" className="h-12 w-full rounded-2xl font-bold text-primary-foreground bg-gradient-brand hover:opacity-90">
-                Continuar a la trivia
+              <Button type="submit" size="lg" disabled={isSubmitting} className="h-12 w-full rounded-2xl font-bold text-primary-foreground bg-gradient-brand hover:opacity-90 disabled:opacity-70">
+                {isSubmitting ? "Validando participación..." : "Continuar a la trivia"}
               </Button>
               <p className="text-center text-xs text-white/55">
                 Al continuar aceptás los términos y condiciones de la experiencia.
@@ -299,6 +336,9 @@ export const TriviaCard = () => {
             </form>
           ) : (
             <>
+          <p className="mb-3 text-sm font-semibold text-white/80 md:text-base">
+            Completa la letra de mi canción:
+          </p>
           <DecorativeText
             as="h2"
             className="mb-8 text-balance text-2xl leading-tight text-foreground md:text-4xl"
