@@ -1,16 +1,16 @@
-import logo from "@/assets/logo-trivia.png";
+import logo from "@/assets/Puro flow.png";
 import { Link, useLocation } from "react-router-dom";
 
 export const AppHeader = () => {
   const location = useLocation();
   return (
     <header className="relative z-20">
-      <div className="container flex items-center justify-between gap-3 py-4 md:gap-4 md:py-6">
+      <div className="container flex items-center justify-between gap-3 pt-4 pb-1 md:gap-4 md:pt-5 md:pb-2">
         <Link to="/" className="flex shrink-0 items-center gap-3 group">
           <img
             src={logo}
             alt="Logo de la campaña"
-            className="h-[6.75rem] md:h-[11.75rem] w-auto transition-bounce group-hover:scale-105 drop-shadow-[0_8px_18px_rgba(0,0,0,0.3)]"
+            className="h-[5.4rem] md:h-[7.75rem] w-auto transition-bounce group-hover:scale-105 drop-shadow-[0_8px_18px_rgba(0,0,0,0.3)]"
             draggable={false}
           />
         </Link>

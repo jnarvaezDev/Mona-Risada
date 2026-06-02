@@ -9,9 +9,9 @@ const Index = () => {
     <div className="relative min-h-screen">
       <PageBackground />
       <AppHeader />
-      <main className="container pb-10 pt-2 md:pb-14 md:pt-4">
+      <main className="container pb-10 pt-0 md:pb-14 md:pt-0">
         <section className="mx-auto max-w-5xl text-center animate-fade-in-up">
-          <div className="relative mx-auto mt-2 max-w-4xl md:mt-0">
+          <div className="relative mx-auto mt-0 max-w-4xl md:-mt-4">
             <img
               src={heroArtists}
               alt="Mindo y Song"
@@ -40,6 +40,8 @@ const Index = () => {
 
           <p className="mx-auto -mt-2 max-w-5xl text-center text-sm font-medium leading-6 text-white/90 md:-mt-3 md:text-2xl md:leading-9">
             Sólo los <span className="font-score font-bold">10</span> primeros dentro del ranking podrán tener <span className="font-score font-bold">1</span> acceso* para acompañarme este <span className="font-score font-bold">4</span> de junio en el lanzamiento de mi canción en Cali.
+            <br></br>
+            ¡Concentradito que es una sola pregunta y solo tendrás una oportunidad!
           </p>
         </section>
 

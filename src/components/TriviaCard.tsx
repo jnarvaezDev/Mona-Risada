@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, X, Clock, Trophy, Sparkles, Zap } from "lucide-react";
 import { DecorativeText } from "@/components/DecorativeText";
@@ -30,9 +30,11 @@ type ParticipantForm = {
 
 export const TriviaCard = () => {
   const navigate = useNavigate();
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const [question] = useState<Question>(questions[0]);
   const [loaded, setLoaded] = useState(false);
   const [step, setStep] = useState<"register" | "trivia">("register");
+  const [timerArmed, setTimerArmed] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [finalTime, setFinalTime] = useState<number | null>(null);
   const [participant, setParticipant] = useState<ParticipantForm>({
@@ -44,12 +46,29 @@ export const TriviaCard = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const elapsed = useTimer(loaded && step === "trivia" && selected === null);
+  const elapsed = useTimer(loaded && step === "trivia" && timerArmed && selected === null);
 
   useEffect(() => {
     const t = setTimeout(() => setLoaded(true), 650);
     return () => clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    if (step !== "trivia") {
+      setTimerArmed(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setTimerArmed(true);
+    }, 450);
+
+    requestAnimationFrame(() => {
+      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    return () => window.clearTimeout(timer);
+  }, [step]);
 
   const answered = selected !== null;
   const correct = answered && selected === question.correctIndex;
@@ -57,6 +76,14 @@ export const TriviaCard = () => {
 
   const normalizePhone = (phone: string) => phone.replace(/\D/g, "");
   const normalizeInstagram = (value: string) => value.trim().replace(/^@+/, "");
+  const sanitizePhoneInput = (value: string) => {
+    const trimmed = value.replace(/[^\d\s()+-]/g, "");
+    const hasLeadingPlus = trimmed.trimStart().startsWith("+");
+    const withoutPlus = trimmed.replace(/\+/g, "");
+
+    return hasLeadingPlus ? `+${withoutPlus}` : withoutPlus;
+  };
+  const sanitizeDocumentInput = (value: string) => value.replace(/\D/g, "");
 
   const validateRegistration = () => {
     if (!participant.fullName.trim()) {
@@ -166,7 +193,7 @@ export const TriviaCard = () => {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto animate-fade-in-up">
+    <div ref={cardRef} className="w-full max-w-2xl mx-auto animate-fade-in-up">
       <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-card shadow-card backdrop-blur-sm">
         <div className="relative h-2 bg-muted overflow-hidden">
           <div
@@ -209,7 +236,8 @@ export const TriviaCard = () => {
               <p className="text-sm md:text-base text-foreground font-medium">
                 Completá tus datos para habilitar la trivia.
                 <br />
-                Si acertás, sumás hasta 50 puntos y desde los 10 segundos sumás 5.
+                Si aciertas, podrás sumar hasta 50 puntos, pero el tiempo juega... si te demorás te iré restando puntos.
+                Si no acertás no sumarás puntos.
               </p>
 
               <div className="space-y-2">
@@ -228,8 +256,9 @@ export const TriviaCard = () => {
                 <Input
                   id="document"
                   value={participant.document}
-                  onChange={(e) => setParticipant((prev) => ({ ...prev, document: e.target.value }))}
+                  onChange={(e) => setParticipant((prev) => ({ ...prev, document: sanitizeDocumentInput(e.target.value) }))}
                   placeholder="Ej: 12345678"
+                  inputMode="numeric"
                   className="h-12 rounded-2xl border-white/10 bg-black/15 px-4 text-white placeholder:text-white/35"
                 />
               </div>
@@ -239,8 +268,9 @@ export const TriviaCard = () => {
                 <Input
                   id="phone"
                   value={participant.phone}
-                  onChange={(e) => setParticipant((prev) => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Ej: +54 11 1234 5678"
+                  onChange={(e) => setParticipant((prev) => ({ ...prev, phone: sanitizePhoneInput(e.target.value) }))}
+                  placeholder="Ej: +57 000 0000000"
+                  inputMode="tel"
                   className="h-12 rounded-2xl border-white/10 bg-black/15 px-4 text-white placeholder:text-white/35"
                 />
               </div>
