@@ -10,7 +10,7 @@ export const AppHeader = () => {
           <img
             src={logo}
             alt="Logo de la campaña"
-            className="h-[4.5rem] md:h-24 w-auto transition-bounce group-hover:scale-105 drop-shadow-[0_8px_18px_rgba(0,0,0,0.3)]"
+            className="h-[6.75rem] md:h-[11.75rem] w-auto transition-bounce group-hover:scale-105 drop-shadow-[0_8px_18px_rgba(0,0,0,0.3)]"
             draggable={false}
           />
         </Link>

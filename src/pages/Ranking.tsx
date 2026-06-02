@@ -266,7 +266,10 @@ const Ranking = () => {
         </div>
       </main>
       <footer className="container py-8 text-center text-xs text-white/55">
-        © {new Date().getFullYear()} Ranking oficial de la campaña.
+        <p>© {new Date().getFullYear()} Ranking oficial de la campaña.</p>
+        <p className="mx-auto mt-4 max-w-5xl text-left text-[11px] leading-5 text-white/70 md:text-center md:text-xs md:leading-6">
+          *Al inscribirte, autorizas que tus datos sean tratados exclusivamente para gestionar tu participación en la actividad promocional de fidelización del tema musical &quot;Mona Rizada&quot; (4 de junio de 2026), sin fines comerciales ni de mercadeo. El acceso a la invitación se asignará mediante una dinámica de selección digital en vivo, válida únicamente para mayores de edad residentes en Colombia que cuenten con un perfil público en la red social de la transmisión. El beneficio consiste única y exclusivamente en la entrada al evento de lanzamiento en la ciudad de Cali. Este incentivo no incluye tiquetes, transporte, hospedaje, viáticos ni alimentación; por lo tanto, si resides en cualquier otra ciudad, deberás asumir la totalidad de los costos de traslado por tu cuenta y riesgo, adicional al consumo fuera del evento. Esta dinámica no constituye un juego de suerte y azar ni sorteo, sino una actividad de interacción y cumplimiento de requisitos. El organizador se exime de cualquier responsabilidad por la imposibilidad del participante seleccionado para asistir al lugar del evento.
+        </p>
       </footer>
     </div>
   );

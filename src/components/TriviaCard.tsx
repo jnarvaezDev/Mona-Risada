@@ -23,6 +23,7 @@ const MAX_TIME = 15; // visual bar cap
 
 type ParticipantForm = {
   fullName: string;
+  document: string;
   phone: string;
   instagramUrl: string;
 };
@@ -36,6 +37,7 @@ export const TriviaCard = () => {
   const [finalTime, setFinalTime] = useState<number | null>(null);
   const [participant, setParticipant] = useState<ParticipantForm>({
     fullName: "",
+    document: "",
     phone: "",
     instagramUrl: "",
   });
@@ -54,6 +56,7 @@ export const TriviaCard = () => {
   const points = answered ? calculatePoints(correct, finalTime ?? 0) : 0;
 
   const normalizePhone = (phone: string) => phone.replace(/\D/g, "");
+  const normalizeInstagram = (value: string) => value.trim().replace(/^@+/, "");
 
   const validateRegistration = () => {
     if (!participant.fullName.trim()) {
@@ -62,6 +65,10 @@ export const TriviaCard = () => {
 
     if (!participant.phone.trim()) {
       return "Ingresá tu celular para participar.";
+    }
+
+    if (!participant.document.trim()) {
+      return "Ingresá tu documento para participar.";
     }
 
     if (!/^\+?[\d\s()-]+$/.test(participant.phone)) {
@@ -73,16 +80,13 @@ export const TriviaCard = () => {
     }
 
     if (!participant.instagramUrl.trim()) {
-      return "Ingresá el link de tu Instagram.";
+      return "Ingresá tu usuario de Instagram.";
     }
 
-    try {
-      const url = new URL(participant.instagramUrl);
-      if (!url.protocol.startsWith("http")) {
-        return "El link de Instagram debe ser una URL válida (http/https).";
-      }
-    } catch {
-      return "El link de Instagram debe ser una URL válida.";
+    const instagramHandle = normalizeInstagram(participant.instagramUrl);
+
+    if (!/^[a-zA-Z0-9._]{1,30}$/.test(instagramHandle)) {
+      return "Ingresá un usuario de Instagram válido.";
     }
 
     return null;
@@ -111,8 +115,9 @@ export const TriviaCard = () => {
 
     const { error } = await supabase.from("trivia_entries").insert({
       full_name: participant.fullName.trim(),
+      document: participant.document.trim(),
       phone: normalizePhone(participant.phone),
-      instagram_url: participant.instagramUrl.trim(),
+      instagram_url: `@${normalizeInstagram(participant.instagramUrl)}`,
       question_id: question.id,
       selected_option: question.options[idx],
       is_correct: isCorrect,
@@ -219,6 +224,17 @@ export const TriviaCard = () => {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="document" className="text-white/85">Documento de Identidad (Cédula)</Label>
+                <Input
+                  id="document"
+                  value={participant.document}
+                  onChange={(e) => setParticipant((prev) => ({ ...prev, document: e.target.value }))}
+                  placeholder="Ej: 12345678"
+                  className="h-12 rounded-2xl border-white/10 bg-black/15 px-4 text-white placeholder:text-white/35"
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="phone" className="text-white/85">Celular</Label>
                 <Input
                   id="phone"
@@ -230,12 +246,12 @@ export const TriviaCard = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="instagram-url" className="text-white/85">Link de Instagram</Label>
+                <Label htmlFor="instagram-url" className="text-white/85">Instagram</Label>
                 <Input
                   id="instagram-url"
                   value={participant.instagramUrl}
                   onChange={(e) => setParticipant((prev) => ({ ...prev, instagramUrl: e.target.value }))}
-                  placeholder="https://instagram.com/tuusuario"
+                  placeholder="@username"
                   className="h-12 rounded-2xl border-white/10 bg-black/15 px-4 text-white placeholder:text-white/35"
                 />
               </div>

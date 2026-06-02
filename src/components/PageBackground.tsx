@@ -7,7 +7,7 @@ export const PageBackground = () => {
       <img
         src={background}
         alt=""
-        className="absolute inset-0 w-full h-full object-cover object-center opacity-55 pointer-events-none select-none"
+        className="absolute inset-0 w-full h-full object-cover object-center  pointer-events-none select-none"
         draggable={false}
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(66,10,17,0.1),rgba(66,10,17,0.68)_55%,rgba(41,5,9,0.95))]" />
