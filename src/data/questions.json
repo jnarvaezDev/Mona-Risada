@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "question": "Antes para ser cantante había que cantar …",
+    "options": [
+      "Hoy también hay que emocionar.",
+      "Hoy también hay que conectar.",
+      "Hoy también hay que dejar huella.",
+      "Hoy también hay que ser memorable."
+    ],
+    "correctIndex": 0,
+    "category": "Trivia",
+    "date": "2026-04-24"
+  }
+]

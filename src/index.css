@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Le Genoss";
+  src: url("./assets/Fonts/LeGenossPersonalUse-d9yvl.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "DM Sans Local";
+  src: url("./assets/Fonts/DMSans_24pt-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "DM Sans Local";
+  src: url("./assets/Fonts/DMSans_36pt-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@layer base {
+  :root {
+    --background: 356 53% 21%;
+    --foreground: 42 100% 98%;
+
+    --card: 355 48% 25%;
+    --card-foreground: 42 100% 98%;
+
+    --popover: 355 48% 25%;
+    --popover-foreground: 42 100% 98%;
+
+    --primary: 47 98% 60%;
+    --primary-foreground: 355 58% 20%;
+    --primary-glow: 41 100% 70%;
+
+    --secondary: 9 84% 62%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 356 35% 30%;
+    --muted-foreground: 31 38% 79%;
+
+    --accent: 354 44% 33%;
+    --accent-foreground: 42 100% 98%;
+
+    --success: 137 53% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 78% 61%;
+    --destructive-foreground: 0 0% 100%;
+
+    --gold: 45 98% 59%;
+    --silver: 18 24% 81%;
+    --bronze: 24 78% 58%;
+
+    --border: 355 29% 40%;
+    --input: 355 31% 34%;
+    --ring: 47 98% 60%;
+
+    --radius: 1rem;
+
+    /* Gradients */
+    --gradient-brand: linear-gradient(135deg, hsl(47 98% 60%) 0%, hsl(40 95% 57%) 45%, hsl(18 90% 58%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(356 44% 27% / 0.95) 0%, hsl(354 38% 22% / 0.94) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(355 58% 16% / 0.1) 0%, hsl(355 58% 16% / 0.85) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(137 53% 45%), hsl(148 52% 38%));
+    --gradient-error: linear-gradient(135deg, hsl(0 78% 61%), hsl(12 78% 57%));
+    --gradient-gold: linear-gradient(135deg, hsl(45 98% 59%), hsl(33 97% 62%));
+    --gradient-silver: linear-gradient(135deg, hsl(18 24% 86%), hsl(12 13% 69%));
+    --gradient-bronze: linear-gradient(135deg, hsl(24 78% 58%), hsl(14 68% 45%));
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px -2px hsl(355 58% 10% / 0.2);
+    --shadow-md: 0 12px 32px -12px hsl(355 58% 10% / 0.35);
+    --shadow-lg: 0 30px 70px -20px hsl(355 58% 10% / 0.45);
+    --shadow-glow: 0 0 40px hsl(47 98% 60% / 0.25);
+    --shadow-card: 0 24px 60px -24px hsl(355 58% 8% / 0.65), 0 10px 30px -16px hsl(355 58% 8% / 0.45);
+
+    /* Transitions */
+    --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --sidebar-background: 356 48% 25%;
+    --sidebar-foreground: 42 100% 98%;
+    --sidebar-primary: 47 98% 60%;
+    --sidebar-primary-foreground: 355 58% 20%;
+    --sidebar-accent: 355 37% 32%;
+    --sidebar-accent-foreground: 42 100% 98%;
+    --sidebar-border: 355 29% 40%;
+    --sidebar-ring: 47 98% 60%;
+  }
+
+  .dark {
+    --background: 355 58% 14%;
+    --foreground: 42 100% 98%;
+    --card: 355 43% 20%;
+    --card-foreground: 42 100% 98%;
+    --popover: 355 43% 20%;
+    --popover-foreground: 42 100% 98%;
+    --primary: 47 98% 60%;
+    --primary-foreground: 355 58% 20%;
+    --muted: 355 29% 26%;
+    --muted-foreground: 31 38% 79%;
+    --border: 355 29% 34%;
+    --input: 355 29% 30%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+    font-family: "DM Sans Local", system-ui, sans-serif;
+    background-color: hsl(var(--background));
+  }
+  html { scroll-behavior: smooth; }
+}
+
+@layer utilities {
+  .bg-gradient-brand { background: var(--gradient-brand); }
+  .bg-gradient-card { background: var(--gradient-card); }
+  .bg-gradient-success { background: var(--gradient-success); }
+  .bg-gradient-error { background: var(--gradient-error); }
+  .bg-gradient-gold { background: var(--gradient-gold); }
+  .bg-gradient-silver { background: var(--gradient-silver); }
+  .bg-gradient-bronze { background: var(--gradient-bronze); }
+
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+  .shadow-lg-soft { box-shadow: var(--shadow-lg); }
+
+  .transition-smooth { transition: all 0.3s var(--transition-smooth); }
+  .transition-bounce { transition: all 0.4s var(--transition-bounce); }
+
+  .font-score {
+    font-family: "DM Sans Local", system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01", "tnum", "lnum";
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  .text-balance { text-wrap: balance; }
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(176 55% 55% / 0.5); }
+  50% { box-shadow: 0 0 0 16px hsl(176 55% 55% / 0); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+@keyframes bounce-in {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes timer-shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in-up { animation: fade-in-up 0.6s var(--transition-smooth) both; }
+.animate-fade-in { animation: fade-in 0.5s ease-out both; }
+.animate-scale-in { animation: scale-in 0.4s var(--transition-bounce) both; }
+.animate-slide-in-right { animation: slide-in-right 0.5s var(--transition-smooth) both; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-shake { animation: shake 0.5s; }
+.animate-bounce-in { animation: bounce-in 0.6s var(--transition-bounce) both; }
