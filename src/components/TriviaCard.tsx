@@ -257,12 +257,12 @@ export const TriviaCard = () => {
             </div>
             <div className={cn(
               "flex items-center gap-1.5 font-mono font-bold tabular-nums text-sm md:text-base px-3 py-1.5 rounded-full transition-smooth",
-               answered
-                 ? "bg-white/10 text-white/75"
-                 : elapsed > 10 ? "bg-destructive/20 text-white"
-                 : elapsed > 5 ? "bg-primary/20 text-primary"
-                 : "bg-success/20 text-white"
-             )}>
+              answered
+                ? "bg-white/10 text-white/75"
+                : elapsed > 10 ? "bg-destructive/20 text-white"
+                  : elapsed > 5 ? "bg-primary/20 text-primary"
+                    : "bg-success/20 text-white"
+            )}>
               <Clock className="w-4 h-4" />
               {(answered ? finalTime ?? 0 : elapsed).toFixed(1)}s
             </div>
@@ -273,8 +273,7 @@ export const TriviaCard = () => {
               <p className="text-sm md:text-base text-foreground font-medium">
                 Completá tus datos para habilitar la trivia.
                 <br />
-                Si aciertas, podrás sumar hasta 50 puntos, pero el tiempo juega... si te demorás te iré restando puntos.
-                Si no acertás no sumarás puntos.
+                Si aciertas, podrás sumar hasta 50 puntos, pero el tiempo juega... si te demorás, se restarán puntos. Si no le pegas, no sumarás puntos.
               </p>
 
               <div className="space-y-2">
@@ -336,104 +335,105 @@ export const TriviaCard = () => {
             </form>
           ) : (
             <>
-          <p className="mb-3 text-sm font-semibold text-white/80 md:text-base">
-            Completa la letra de mi canción:
-          </p>
-          <DecorativeText
-            as="h2"
-            className="mb-8 text-balance text-2xl leading-tight text-foreground md:text-4xl"
-            text={question.question}
-          />
+              <p className="mb-3 text-sm font-semibold text-white/80 md:text-base">
+                Si sos mi fan, completá la frase que dije cuando anuncié mi nuevo sueño.
+                Dejá tus datos y ojo… responde rápido y suma más puntos pa’ el ranking, solo tienes 1 oportunidad
+              </p>
+              <DecorativeText
+                as="h2"
+                className="mb-8 text-balance text-2xl leading-tight text-foreground md:text-4xl"
+                text={question.question}
+              />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-            {question.options.map((opt, idx) => {
-              const isSelected = selected === idx;
-              const isCorrectOpt = idx === question.correctIndex;
-              const showCorrect = answered && isCorrectOpt;
-              const showWrong = answered && isSelected && !isCorrectOpt;
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                {question.options.map((opt, idx) => {
+                  const isSelected = selected === idx;
+                  const isCorrectOpt = idx === question.correctIndex;
+                  const showCorrect = answered && isCorrectOpt;
+                  const showWrong = answered && isSelected && !isCorrectOpt;
 
-              return (
-                <button
-                  key={idx}
-                  disabled={answered || isSubmitting}
-                  onClick={() => handleSelect(idx)}
-                  className={cn(
-                    "group relative text-left p-4 md:p-5 rounded-2xl border-2 transition-bounce overflow-hidden",
-                    "disabled:cursor-not-allowed",
-                    !answered && "border-white/10 bg-black/15 hover:border-primary hover:-translate-y-1 hover:shadow-card active:translate-y-0",
-                    showCorrect && "border-success bg-gradient-success text-success-foreground animate-bounce-in shadow-lg-soft",
-                    showWrong && "border-destructive bg-gradient-error text-destructive-foreground animate-shake shadow-lg-soft",
-                    answered && !showCorrect && !showWrong && "border-white/10 bg-white/10 opacity-50"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "flex-shrink-0 w-9 h-9 rounded-xl grid place-items-center font-display text-sm transition-smooth",
-                      !answered && "bg-white/10 text-foreground group-hover:bg-primary group-hover:text-primary-foreground",
-                      showCorrect && "bg-white/25 text-white",
-                      showWrong && "bg-white/25 text-white",
-                      answered && !showCorrect && !showWrong && "bg-white/10 text-muted-foreground"
-                    )}>
-                      {String.fromCharCode(65 + idx)}
+                  return (
+                    <button
+                      key={idx}
+                      disabled={answered || isSubmitting}
+                      onClick={() => handleSelect(idx)}
+                      className={cn(
+                        "group relative text-left p-4 md:p-5 rounded-2xl border-2 transition-bounce overflow-hidden",
+                        "disabled:cursor-not-allowed",
+                        !answered && "border-white/10 bg-black/15 hover:border-primary hover:-translate-y-1 hover:shadow-card active:translate-y-0",
+                        showCorrect && "border-success bg-gradient-success text-success-foreground animate-bounce-in shadow-lg-soft",
+                        showWrong && "border-destructive bg-gradient-error text-destructive-foreground animate-shake shadow-lg-soft",
+                        answered && !showCorrect && !showWrong && "border-white/10 bg-white/10 opacity-50"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "flex-shrink-0 w-9 h-9 rounded-xl grid place-items-center font-display text-sm transition-smooth",
+                          !answered && "bg-white/10 text-foreground group-hover:bg-primary group-hover:text-primary-foreground",
+                          showCorrect && "bg-white/25 text-white",
+                          showWrong && "bg-white/25 text-white",
+                          answered && !showCorrect && !showWrong && "bg-white/10 text-muted-foreground"
+                        )}>
+                          {String.fromCharCode(65 + idx)}
+                        </div>
+                        <span className="flex-1 font-semibold text-base md:text-lg">
+                          {opt}
+                        </span>
+                        {showCorrect && <Check className="w-6 h-6 flex-shrink-0" strokeWidth={3} />}
+                        {showWrong && <X className="w-6 h-6 flex-shrink-0" strokeWidth={3} />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {submitError && !answered && (
+                <p className="mt-4 text-sm text-destructive font-medium">{submitError}</p>
+              )}
+
+              {answered && (
+                <div className="mt-8 animate-scale-in">
+                  <div className={cn(
+                    "rounded-2xl p-6 md:p-7 border-2",
+                    correct
+                      ? "bg-gradient-success border-success/30 text-success-foreground"
+                      : "bg-gradient-error border-destructive/30 text-destructive-foreground"
+                  )}>
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-white/20 grid place-items-center backdrop-blur-sm">
+                        {correct ? (
+                          <Trophy className="w-7 h-7" strokeWidth={2.5} />
+                        ) : (
+                          <X className="w-7 h-7" strokeWidth={3} />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold uppercase tracking-widest opacity-90">
+                          {correct ? "¡Respuesta correcta!" : "Respuesta incorrecta"}
+                        </p>
+                        <p className="font-score mt-1 text-2xl font-bold md:text-3xl">
+                          {correct ? `+${points} puntos` : "0 puntos"}
+                        </p>
+                        <p className="text-sm md:text-base opacity-95 mt-2 flex items-center gap-2">
+                          <Zap className="w-4 h-4" />
+                          Respondiste en <span className="font-bold">{(finalTime ?? 0).toFixed(1)} segundos</span>
+                        </p>
+                      </div>
                     </div>
-                    <span className="flex-1 font-semibold text-base md:text-lg">
-                      {opt}
-                    </span>
-                    {showCorrect && <Check className="w-6 h-6 flex-shrink-0" strokeWidth={3} />}
-                    {showWrong && <X className="w-6 h-6 flex-shrink-0" strokeWidth={3} />}
                   </div>
-                </button>
-              );
-            })}
-          </div>
 
-          {submitError && !answered && (
-            <p className="mt-4 text-sm text-destructive font-medium">{submitError}</p>
-          )}
-
-          {answered && (
-            <div className="mt-8 animate-scale-in">
-              <div className={cn(
-                "rounded-2xl p-6 md:p-7 border-2",
-                correct
-                  ? "bg-gradient-success border-success/30 text-success-foreground"
-                  : "bg-gradient-error border-destructive/30 text-destructive-foreground"
-              )}>
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-white/20 grid place-items-center backdrop-blur-sm">
-                    {correct ? (
-                      <Trophy className="w-7 h-7" strokeWidth={2.5} />
-                    ) : (
-                      <X className="w-7 h-7" strokeWidth={3} />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold uppercase tracking-widest opacity-90">
-                      {correct ? "¡Respuesta correcta!" : "Respuesta incorrecta"}
-                    </p>
-                    <p className="font-score mt-1 text-2xl font-bold md:text-3xl">
-                   {correct ? `+${points} puntos` : "0 puntos"}
-                     </p>
-                    <p className="text-sm md:text-base opacity-95 mt-2 flex items-center gap-2">
-                      <Zap className="w-4 h-4" />
-                      Respondiste en <span className="font-bold">{(finalTime ?? 0).toFixed(1)} segundos</span>
-                    </p>
+                  <div className="mt-6">
+                    <Button
+                      size="lg"
+                      onClick={() => navigate("/ranking")}
+                      className="h-14 w-full rounded-2xl bg-gradient-brand text-base font-bold text-primary-foreground shadow-md transition-smooth hover:opacity-90 hover:shadow-glow"
+                    >
+                      <Trophy className="w-5 h-5 mr-2" />
+                      Ver ranking
+                    </Button>
                   </div>
                 </div>
-              </div>
-
-              <div className="mt-6">
-                <Button
-                  size="lg"
-                  onClick={() => navigate("/ranking")}
-                  className="h-14 w-full rounded-2xl bg-gradient-brand text-base font-bold text-primary-foreground shadow-md transition-smooth hover:opacity-90 hover:shadow-glow"
-                >
-                  <Trophy className="w-5 h-5 mr-2" />
-                  Ver ranking
-                </Button>
-              </div>
-            </div>
-          )}
+              )}
             </>
           )}
         </div>
