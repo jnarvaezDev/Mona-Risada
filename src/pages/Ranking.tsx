@@ -1,13 +1,11 @@
 import { AppHeader } from "@/components/AppHeader";
 import { DecorativeText } from "@/components/DecorativeText";
 import { PageBackground } from "@/components/PageBackground";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { calculatePoints } from "@/hooks/use-timer";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Trophy, Medal, Award, ArrowLeft, Crown } from "lucide-react";
+import { Trophy, Medal, Award, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Row = { name: string; score: number };
@@ -108,18 +106,10 @@ const Ranking = () => {
   ];
 
   return (
-    <div className="relative min-h-screen">
+      <div className="relative min-h-screen">
       <PageBackground />
       <AppHeader />
-      <main className="container py-8 md:py-14">
-        <div className="flex items-center justify-between mb-8 animate-fade-in-up">
-          <Button variant="ghost" asChild className="gap-2 rounded-full border border-white/10 bg-black/15 text-white hover:bg-white/10 hover:text-white">
-            <Link to="/">
-              <ArrowLeft className="w-4 h-4" /> Volver
-            </Link>
-          </Button>
-        </div>
-
+      <main className="container pb-8 pt-0 md:pb-14 md:pt-0">
         <div className="text-center mb-10 md:mb-14 animate-fade-in-up">
           <p className="inline-block rounded-full bg-primary/15 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary md:text-sm">
             Ranking general
@@ -259,11 +249,6 @@ const Ranking = () => {
           </ul>
         </div>
 
-        <div className="mt-10 text-center">
-          <Button asChild size="lg" className="h-14 rounded-2xl bg-gradient-brand px-8 text-base font-bold text-primary-foreground shadow-md transition-smooth hover:shadow-glow">
-            <Link to="/">Volver a la trivia</Link>
-          </Button>
-        </div>
       </main>
       <footer className="container py-8 text-center text-xs text-white/55">
         <p>© {new Date().getFullYear()} Ranking oficial de la campaña.</p>
