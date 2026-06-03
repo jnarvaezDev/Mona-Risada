@@ -20,6 +20,9 @@ type Question = {
 };
 
 const MAX_TIME = 15; // visual bar cap
+const BOGOTA_TIME_ZONE = "America/Bogota";
+const TRIVIA_CLOSES_AT = "2026-06-03T15:00:00";
+const CLOSED_MESSAGE = "Mi rey o reina, ya el tiempo terminó para definir el ranking. Igual, gracias por la buena vibra y querer acompañarme en mi sueño.";
 
 type ParticipantForm = {
   fullName: string;
@@ -28,11 +31,31 @@ type ParticipantForm = {
   instagramUrl: string;
 };
 
+const getBogotaTimestamp = () => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BOGOTA_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "00";
+
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
+};
+
+const isTriviaClosedNow = () => getBogotaTimestamp() >= TRIVIA_CLOSES_AT;
+
 export const TriviaCard = () => {
   const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [question] = useState<Question>(questions[0]);
   const [loaded, setLoaded] = useState(false);
+  const [isTriviaClosed, setIsTriviaClosed] = useState(() => isTriviaClosedNow());
   const [step, setStep] = useState<"register" | "trivia">("register");
   const [timerArmed, setTimerArmed] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
@@ -46,11 +69,20 @@ export const TriviaCard = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const elapsed = useTimer(loaded && step === "trivia" && timerArmed && selected === null);
+  const elapsed = useTimer(loaded && step === "trivia" && timerArmed && selected === null && !isTriviaClosed);
 
   useEffect(() => {
     const t = setTimeout(() => setLoaded(true), 650);
     return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const syncClosedState = () => setIsTriviaClosed(isTriviaClosedNow());
+
+    syncClosedState();
+    const interval = window.setInterval(syncClosedState, 1000);
+
+    return () => window.clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -71,6 +103,7 @@ export const TriviaCard = () => {
   }, [step]);
 
   const answered = selected !== null;
+  const showClosedState = isTriviaClosed && !answered;
   const correct = answered && selected === question.correctIndex;
   const points = answered ? calculatePoints(correct, finalTime ?? 0) : 0;
 
@@ -121,6 +154,12 @@ export const TriviaCard = () => {
 
   const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (isTriviaClosed) {
+      setFormError(CLOSED_MESSAGE);
+      return;
+    }
+
     const validationError = validateRegistration();
     if (validationError) {
       setFormError(validationError);
@@ -129,47 +168,19 @@ export const TriviaCard = () => {
 
     setIsSubmitting(true);
 
-    const documentValue = participant.document.trim();
-    const phoneValue = normalizePhone(participant.phone);
-    const instagramValue = `@${normalizeInstagram(participant.instagramUrl)}`;
-
-    const [documentCheck, phoneCheck, instagramCheck] = await Promise.all([
-      supabase.from("trivia_entries").select("id").eq("document", documentValue).limit(1),
-      supabase.from("trivia_entries").select("id").eq("phone", phoneValue).limit(1),
-      supabase.from("trivia_entries").select("id").eq("instagram_url", instagramValue).limit(1),
-    ]);
-
-    if (documentCheck.error || phoneCheck.error || instagramCheck.error) {
-      setFormError("No pudimos validar tu participación en este momento. Intentá de nuevo.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (documentCheck.data.length > 0) {
-      setFormError("Ya participaste con esa cédula.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (phoneCheck.data.length > 0) {
-      setFormError("Ya participaste con ese celular.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (instagramCheck.data.length > 0) {
-      setFormError("Ya participaste con ese usuario de Instagram.");
-      setIsSubmitting(false);
-      return;
-    }
-
     setFormError(null);
+    setSubmitError(null);
     setStep("trivia");
     setIsSubmitting(false);
   };
 
   const handleSelect = async (idx: number) => {
-    if (answered) return;
+    if (answered || isTriviaClosed) {
+      if (isTriviaClosed) {
+        setSubmitError(CLOSED_MESSAGE);
+      }
+      return;
+    }
     const capturedTime = elapsed;
     const isCorrect = idx === question.correctIndex;
     const responseTimeMs = Math.round(capturedTime * 1000);
@@ -190,7 +201,7 @@ export const TriviaCard = () => {
 
     if (error) {
       if (error.code === "23505") {
-        setSubmitError("Ya participaste con ese celular o Instagram.");
+        setSubmitError("Ya participaste en esta trivia con esos datos.");
       } else {
         setSubmitError("No pudimos guardar tu intento. Revisá tu conexión e intentá de nuevo.");
       }
@@ -257,18 +268,29 @@ export const TriviaCard = () => {
             </div>
             <div className={cn(
               "flex items-center gap-1.5 font-mono font-bold tabular-nums text-sm md:text-base px-3 py-1.5 rounded-full transition-smooth",
-              answered
+              showClosedState
+                ? "bg-white/10 text-white/75"
+                : answered
                 ? "bg-white/10 text-white/75"
                 : elapsed > 10 ? "bg-destructive/20 text-white"
                   : elapsed > 5 ? "bg-primary/20 text-primary"
                     : "bg-success/20 text-white"
             )}>
               <Clock className="w-4 h-4" />
-              {(answered ? finalTime ?? 0 : elapsed).toFixed(1)}s
+              {showClosedState ? "Cerrado" : `${(answered ? finalTime ?? 0 : elapsed).toFixed(1)}s`}
             </div>
           </div>
 
-          {step === "register" ? (
+          {showClosedState ? (
+            <div className="rounded-2xl border border-dashed border-white/15 bg-black/10 p-6 text-center md:p-8">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary/90 md:text-sm">
+                Trivia cerrada
+              </p>
+              <p className="mx-auto mt-4 max-w-xl text-balance text-base font-medium leading-7 text-white/90 md:text-2xl md:leading-9">
+                {CLOSED_MESSAGE}
+              </p>
+            </div>
+          ) : step === "register" ? (
             <form onSubmit={handleRegister} className="space-y-5">
               <p className="text-sm md:text-base text-foreground font-medium">
                 Completá tus datos para habilitar la trivia.
@@ -327,7 +349,7 @@ export const TriviaCard = () => {
               )}
 
               <Button type="submit" size="lg" disabled={isSubmitting} className="h-12 w-full rounded-2xl font-bold text-primary-foreground bg-gradient-brand hover:opacity-90 disabled:opacity-70">
-                {isSubmitting ? "Validando participación..." : "Continuar a la trivia"}
+                {isSubmitting ? "Ingresando a la trivia..." : "Continuar a la trivia"}
               </Button>
               <p className="text-center text-xs text-white/55">
                 Al continuar aceptás los términos y condiciones de la experiencia.

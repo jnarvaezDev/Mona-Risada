@@ -1,19 +1,22 @@
 import { AppHeader } from "@/components/AppHeader";
+import { Button } from "@/components/ui/button";
 import { DecorativeText } from "@/components/DecorativeText";
 import { PageBackground } from "@/components/PageBackground";
 import { Skeleton } from "@/components/ui/skeleton";
-import { calculatePoints } from "@/hooks/use-timer";
 import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
-import { Trophy, Medal, Award, Crown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Trophy, Medal, Award, Crown, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Row = { name: string; score: number };
-type RankingEntry = {
-  full_name: string;
-  is_correct: boolean;
-  response_time_ms: number;
+type RankingCacheEntry = {
+  full_name: string | null;
+  score: number | null;
+  rank: number | null;
+  refreshed_at: string | null;
 };
+
+const REFRESH_COOLDOWN_MS = 30_000;
 
 const podiumStyles = [
   { gradient: "bg-gradient-gold", ring: "ring-gold/40", text: "text-gold", icon: Crown, label: "Oro" },
@@ -40,63 +43,135 @@ const pendingCopy = (isLoading: boolean) =>
     ? { title: "Cargando ranking", subtitle: "Trayendo puntajes reales" }
     : { title: "Lugar disponible", subtitle: "Esperando nuevos participantes" };
 
+const formatElapsedSeconds = (timestamp: string, now: number) => {
+  const updatedAt = new Date(timestamp).getTime();
+
+  if (!Number.isFinite(updatedAt)) return null;
+
+  const elapsedSeconds = Math.max(0, Math.floor((now - updatedAt) / 1000));
+
+  if (elapsedSeconds === 1) return "Actualizado hace 1 segundo";
+
+  return `Actualizado hace ${elapsedSeconds} segundos`;
+};
+
 const Ranking = () => {
   const [rows, setRows] = useState<Row[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    let cancelled = false;
+    const timerId = window.setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
 
-    const fetchRanking = async () => {
-      setIsLoading(true);
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchRanking = async (mode: "initial" | "manual") => {
+      if (mode === "initial") {
+        setIsLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+
       setLoadError(null);
 
       const { data, error } = await supabase
-        .from("trivia_entries")
-        .select("full_name, is_correct, response_time_ms");
+        .from("ranking_cache")
+        .select("full_name, score, rank, refreshed_at")
+        .order("rank", { ascending: true })
+        .limit(10);
 
-      if (cancelled) return;
+      if (!isMountedRef.current) return;
 
       if (error) {
         setLoadError("No pudimos cargar el ranking en este momento.");
-        setRows([]);
+        if (mode === "initial") {
+          setRows([]);
+          setLastUpdatedAt(null);
+        }
+
         setIsLoading(false);
+        setIsRefreshing(false);
         return;
       }
 
-      const grouped = (data as RankingEntry[]).reduce((acc, entry) => {
-        const key = entry.full_name.trim();
-        if (!key) return acc;
+      const nextRows = (data as RankingCacheEntry[])
+        .sort((left, right) => (left.rank ?? Number.MAX_SAFE_INTEGER) - (right.rank ?? Number.MAX_SAFE_INTEGER))
+        .map((entry) => ({
+          name: entry.full_name?.trim() ?? "",
+          score: entry.score ?? 0,
+        }))
+        .filter((entry) => entry.name);
 
-        const score = calculatePoints(entry.is_correct, entry.response_time_ms / 1000);
-        const current = acc.get(key) ?? { name: key, score: 0, fastestTimeMs: Number.POSITIVE_INFINITY };
-
-        current.score += score;
-
-        if (entry.is_correct) {
-          current.fastestTimeMs = Math.min(current.fastestTimeMs, entry.response_time_ms);
-        }
-
-        acc.set(key, current);
-        return acc;
-      }, new Map<string, Row & { fastestTimeMs: number }>());
-
-      const nextRows = Array.from(grouped.values())
-        .sort((a, b) => b.score - a.score || a.fastestTimeMs - b.fastestTimeMs || a.name.localeCompare(b.name, "es"))
-        .slice(0, 10)
-        .map(({ name, score }) => ({ name, score }));
+      const cacheTimestamp = (data as RankingCacheEntry[]).find((entry) => entry.refreshed_at)?.refreshed_at ?? null;
 
       setRows(nextRows);
+      setLastUpdatedAt(cacheTimestamp);
       setIsLoading(false);
+      setIsRefreshing(false);
     };
 
-    void fetchRanking();
-
-    return () => {
-      cancelled = true;
-    };
+    void fetchRanking("initial");
   }, []);
+
+  const cooldownRemainingSeconds = cooldownUntil ? Math.max(0, Math.ceil((cooldownUntil - now) / 1000)) : 0;
+  const isRefreshBlocked = cooldownRemainingSeconds > 0;
+  const updatedAgoLabel = useMemo(
+    () => (lastUpdatedAt ? formatElapsedSeconds(lastUpdatedAt, now) : null),
+    [lastUpdatedAt, now],
+  );
+
+  const handleRefresh = async () => {
+    if (isRefreshing || isRefreshBlocked) return;
+
+    setCooldownUntil(Date.now() + REFRESH_COOLDOWN_MS);
+    setIsRefreshing(true);
+    setLoadError(null);
+
+    const { data, error } = await supabase
+      .from("ranking_cache")
+      .select("full_name, score, rank, refreshed_at")
+      .order("rank", { ascending: true })
+      .limit(10);
+
+    if (!isMountedRef.current) return;
+
+    if (error) {
+      setLoadError("No pudimos cargar el ranking en este momento.");
+      setIsRefreshing(false);
+      return;
+    }
+
+    const nextRows = (data as RankingCacheEntry[])
+      .sort((left, right) => (left.rank ?? Number.MAX_SAFE_INTEGER) - (right.rank ?? Number.MAX_SAFE_INTEGER))
+      .map((entry) => ({
+        name: entry.full_name?.trim() ?? "",
+        score: entry.score ?? 0,
+      }))
+      .filter((entry) => entry.name);
+
+    const cacheTimestamp = (data as RankingCacheEntry[]).find((entry) => entry.refreshed_at)?.refreshed_at ?? null;
+
+    setRows(nextRows);
+    setLastUpdatedAt(cacheTimestamp);
+    setIsRefreshing(false);
+  };
 
   const [first, second, third, ...rest] = rows;
   const pendingState = pendingCopy(isLoading);
@@ -120,6 +195,21 @@ const Ranking = () => {
           <p className="mt-3 text-base text-white/75 md:text-lg">
             Acá se ven los fans que mejor combinaron aciertos y velocidad en la trivia de la campaña.
           </p>
+          <div className="mt-4 flex flex-col items-center justify-center gap-3 md:flex-row">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => void handleRefresh()}
+              disabled={isRefreshing || isRefreshBlocked}
+              className="rounded-full bg-white/10 px-4 text-white hover:bg-white/15"
+            >
+              <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+              {isRefreshing ? "Actualizando..." : isRefreshBlocked ? `Disponible en ${cooldownRemainingSeconds}s` : "Actualizar ranking"}
+            </Button>
+            {updatedAgoLabel && (
+              <p className="text-xs font-medium text-white/55 md:text-sm">{updatedAgoLabel}</p>
+            )}
+          </div>
           {loadError && <p className="mt-3 text-sm font-medium text-primary">{loadError}</p>}
         </div>
 
